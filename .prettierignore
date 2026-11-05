@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+*.md
+.turbo/
+.next/
+.expo/
+dist/
+coverage/
+next-env.d.ts
+apps/*/assets/
+supabase/signing_keys.json
+supabase/.temp/

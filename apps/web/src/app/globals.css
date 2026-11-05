@@ -1,0 +1,35 @@
+@import 'tailwindcss';
+
+/* Semantic colours come from @smart-parking/design-tokens (rendered as --qu-* in the root layout). */
+@theme inline {
+  --color-canvas: var(--qu-canvas);
+  --color-surface: var(--qu-surface);
+  --color-surface-raised: var(--qu-surface-raised);
+  --color-ink: var(--qu-ink);
+  --color-ink-muted: var(--qu-ink-muted);
+  --color-ink-faint: var(--qu-ink-faint);
+  --color-line: var(--qu-line);
+  --color-line-strong: var(--qu-line-strong);
+  --color-action: var(--qu-action);
+  --color-action-ink: var(--qu-action-ink);
+  --color-action-hover: var(--qu-action-hover);
+  --color-overlay: var(--qu-overlay);
+  --color-focus-ring: var(--qu-focus-ring);
+
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+}
+
+:focus-visible {
+  outline: 2px solid var(--qu-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

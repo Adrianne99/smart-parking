@@ -1,0 +1,34 @@
+# dependencies and build output
+node_modules/
+.turbo/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: only *.env.example files are committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Expo / React Native
+.expo/
+expo-env.d.ts
+.metro-health-check*
+apps/*/ios/
+apps/*/android/
+.kotlin/
+*.orig.*
+
+# tooling
+.vercel
+npm-debug.log*
+.DS_Store

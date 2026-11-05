@@ -1,0 +1,4 @@
+{
+  "extends": "@smart-parking/config/tsconfig/library.json",
+  "include": ["src"]
+}

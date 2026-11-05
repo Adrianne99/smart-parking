@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Smart Parking Staff",
+    "slug": "smart-parking-staff",
+    "scheme": "smartparking-staff",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ph.smartparking.staff"
+    },
+    "android": {
+      "package": "ph.smartparking.staff",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#FFFFFF",
+          "dark": { "backgroundColor": "#0A0A0A" }
+        }
+      ]
+    ]
+  }
+}
