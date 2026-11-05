@@ -8,9 +8,9 @@ One owner per fragile path. Others propose changes in their handoff (`05_HANDOFF
 | `packages/config/**` | Integrator | TS/ESLint baselines |
 | `packages/contracts/**` (DTOs, error registry) | **Contracts lead = Integrator** | ADR-005 |
 | `apps/api/src/app.ts` (router mounts), `apps/api/src/http/**`, `apps/api/build.mjs` | Integrator | Features export a router from their module |
-| `packages/database/**` (Prisma schema + migrations) | **DB/Auth lead (P1 Session A)** | Not created yet; only this owner creates/edits it |
+| `packages/database/**` (Prisma schema + migrations) | **DB/Auth lead (P1 Session A)** | Only this owner creates/edits schema and migrations |
 | `supabase/config.toml` (local stack, auth settings) | DB/Auth lead (Integrator until P1) | No SQL in `supabase/migrations`; Prisma owns schema (ADR-007) |
-| `apps/api/src/modules/auth/**`, `modules/organizations/**`, `modules/facilities/access/**` | P1 Session A | |
+| `apps/api/src/modules/auth/**`, `modules/access/**`, `modules/me/**`, `modules/organizations/**`, `modules/facilities/**` | P1 Session A (DB/Auth) | `modules/access/access.ts` is the single permission map; other modules call it, never re-implement it |
 | `packages/design-tokens/**`, `packages/ui-web/**`, `packages/ui-mobile/**` | **Design System (P1 Session B)** | P0 seeded tokens + NativeWind preset |
 | `packages/pricing/**`, `apps/api/src/modules/parking/**`, `modules/rates/**` | P2 Session 3 | |
 | `apps/api/src/modules/payments/**`, `cash/**`, `exits/**`, webhook inbox | P5 Session 5 | |

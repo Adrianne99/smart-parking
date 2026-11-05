@@ -17,6 +17,10 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   /** Browser origins allowed to call the API. Native apps don't need CORS. */
   CORS_ALLOWED_ORIGINS: originList,
+  /** Server-only Postgres connection (pooled in hosted environments). */
+  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, 'postgres connection string'),
+  /** Supabase project URL; JWTs are verified against its JWKS. */
+  SUPABASE_URL: z.string().regex(/^https?:\/\/[^/\s]+$/, 'URL without path or trailing slash'),
 });
 
 export type Env = z.infer<typeof envSchema>;

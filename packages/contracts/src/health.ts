@@ -9,3 +9,11 @@ export const healthResponseSchema = z.object({
 });
 
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+/** GET /v1/health/ready — 200 when the database answers, otherwise 503 SERVICE_UNAVAILABLE. */
+export const readinessResponseSchema = z.object({
+  status: z.literal('ready'),
+  checks: z.object({ database: z.literal('ok') }),
+});
+
+export type ReadinessResponse = z.infer<typeof readinessResponseSchema>;

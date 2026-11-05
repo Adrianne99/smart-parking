@@ -1,6 +1,6 @@
 # ADR-003 — Staff app offline boundary
 
-**Status:** Proposed (P0) · **Date:** 2026-11-05 · **Owner:** Integrator; implemented in P3 (queue) and P7 (reconciliation)
+**Status:** Accepted by owner 2026-11-05 · **Date:** 2026-11-05 · **Owner:** Integrator; implemented in P3 (queue) and P7 (reconciliation)
 
 ## Context
 

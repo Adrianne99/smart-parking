@@ -1,5 +1,6 @@
 // Bundles the API and the workspace TypeScript packages it imports into dist/server.js.
-// Third-party dependencies stay external and are loaded from node_modules at runtime.
+// Third-party dependencies stay external and are loaded from node_modules at runtime, so any
+// third-party package a workspace package needs (e.g. @prisma/client, pg) must also be an API dependency.
 import { build } from 'esbuild';
 import { readFileSync } from 'node:fs';
 
