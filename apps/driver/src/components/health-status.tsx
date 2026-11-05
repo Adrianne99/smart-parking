@@ -1,7 +1,8 @@
 import { ApiClientError } from '@smart-parking/api-client';
 import { DISPLAY_TIME_ZONE } from '@smart-parking/contracts';
+import { Button, Card, StatusLabel } from '@smart-parking/ui-mobile';
 import { useQuery } from '@tanstack/react-query';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { api } from '../lib/api';
 
 const manilaTime = new Intl.DateTimeFormat('en-PH', {
@@ -16,21 +17,25 @@ export function HealthStatus() {
     queryFn: ({ signal }) => api.health(signal),
   });
   const error = health.error instanceof ApiClientError ? health.error : undefined;
-  const retrying = health.isFetching;
 
   return (
-    <View className="gap-4 rounded-[10px] border border-line bg-surface p-4">
-      <Text className="font-ui-medium text-[13px] text-ink-muted">API connection</Text>
+    <Card>
+      <Text className="font-ui-medium text-label text-ink-muted">API connection</Text>
 
-      {/* Status is always text + symbol, never colour alone. */}
-      <Text accessibilityLiveRegion="polite" className="font-ui-medium text-[16px] text-ink">
-        {health.isPending ? '○ Checking…' : health.isError ? '× Unreachable' : '● Connected'}
-      </Text>
+      <View accessibilityLiveRegion="polite">
+        {health.isPending ? (
+          <StatusLabel tone="pending">Checking…</StatusLabel>
+        ) : health.isError ? (
+          <StatusLabel tone="negative">Unreachable</StatusLabel>
+        ) : (
+          <StatusLabel tone="positive">Connected</StatusLabel>
+        )}
+      </View>
 
       {health.isSuccess && (
-        <Text className="font-ui text-[14px] text-ink-muted">
+        <Text className="font-ui text-compact text-ink-muted">
           Server time{' '}
-          <Text className="font-data text-[13px]">
+          <Text className="font-data text-data">
             {manilaTime.format(new Date(health.data.time))}
           </Text>
         </Text>
@@ -38,34 +43,25 @@ export function HealthStatus() {
 
       {health.isError && (
         <>
-          <Text className="font-ui text-[14px] leading-[21px] text-ink-muted">
+          <Text className="font-ui text-compact text-ink-muted">
             {error?.code === 'NETWORK_ERROR'
               ? 'The API could not be reached. Check your connection and try again.'
               : (error?.message ?? 'The API returned an unexpected error.')}
             {error?.requestId ? (
               <>
                 {' '}
-                Reference <Text className="font-data text-[13px]">{error.requestId}</Text>
+                Reference <Text className="font-data text-data">{error.requestId}</Text>
               </>
             ) : null}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: retrying, busy: retrying }}
-            disabled={retrying}
+          <Button
+            label="Retry"
+            loading={health.isFetching}
+            loadingLabel="Retrying…"
             onPress={() => health.refetch()}
-            className={`h-14 items-center justify-center rounded-[10px] px-7 ${
-              retrying ? 'border border-line bg-surface-raised' : 'bg-action active:bg-action-hover'
-            }`}
-          >
-            <Text
-              className={`font-ui-medium text-[16px] ${retrying ? 'text-ink-faint' : 'text-action-ink'}`}
-            >
-              {retrying ? 'Retrying…' : 'Retry'}
-            </Text>
-          </Pressable>
+          />
         </>
       )}
-    </View>
+    </Card>
   );
 }

@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     '@smart-parking/api-client',
     '@smart-parking/contracts',
     '@smart-parking/design-tokens',
+    '@smart-parking/ui-web',
   ],
   poweredByHeader: false,
 };

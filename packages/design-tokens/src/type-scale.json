@@ -1,0 +1,11 @@
+{
+  "display": { "web": 48, "mobile": 36, "weight": 400, "lineHeight": 1.1, "tracking": -0.045 },
+  "h1": { "web": 32, "mobile": 28, "weight": 500, "lineHeight": 1.2, "tracking": -0.035 },
+  "h2": { "web": 24, "mobile": 22, "weight": 500, "lineHeight": 1.25, "tracking": -0.025 },
+  "h3": { "web": 18, "mobile": 18, "weight": 500, "lineHeight": 1.35, "tracking": -0.015 },
+  "body": { "web": 15, "mobile": 16, "weight": 400, "lineHeight": 1.6, "tracking": -0.005 },
+  "compact": { "web": 14, "mobile": 14, "weight": 400, "lineHeight": 1.45, "tracking": 0 },
+  "label": { "web": 13, "mobile": 13, "weight": 500, "lineHeight": 1.4, "tracking": 0 },
+  "caption": { "web": 12, "mobile": 12, "weight": 400, "lineHeight": 1.5, "tracking": 0 },
+  "data": { "web": 14, "mobile": 15, "weight": 400, "lineHeight": 1.45, "tracking": 0 }
+}

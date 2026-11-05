@@ -1,9 +1,14 @@
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
-import { cssVariables, themeColors, themeStylesheet, type ColorToken } from './index';
+import { cssVariables, themeColors, themeStylesheet, typeScale, type ColorToken } from './index';
 
 const nativewindPreset = createRequire(import.meta.url)('../nativewind-preset.cjs') as {
-  theme: { extend: { colors: Record<string, string> } };
+  theme: {
+    extend: {
+      colors: Record<string, string>;
+      fontSize: Record<string, [string, { lineHeight: string; letterSpacing: string }]>;
+    };
+  };
 };
 
 // WCAG 2.2 relative luminance / contrast ratio for #RRGGBB colors.
@@ -17,17 +22,24 @@ function contrast(a: string, b: string): number {
   return (hi! + 0.05) / (lo! + 0.05);
 }
 
-// [foreground, background, minimum ratio]: text needs 4.5:1, focus indicators 3:1.
+// [foreground, background, minimum ratio]: text needs 4.5:1; focus indicators and
+// control boundaries (inputs, secondary buttons) need 3:1 (WCAG 1.4.11).
 const pairs: Array<[ColorToken, ColorToken, number]> = [
   ['ink', 'canvas', 4.5],
   ['ink', 'surface', 4.5],
   ['ink', 'surfaceRaised', 4.5],
   ['inkMuted', 'canvas', 4.5],
   ['inkMuted', 'surface', 4.5],
+  ['inkMuted', 'surfaceRaised', 4.5],
   ['inkFaint', 'canvas', 4.5],
+  ['inkFaint', 'surfaceRaised', 4.5], // disabled control label
   ['actionInk', 'action', 4.5],
   ['actionInk', 'actionHover', 4.5],
   ['focusRing', 'canvas', 3],
+  ['focusRing', 'surface', 3],
+  ['control', 'canvas', 3],
+  ['control', 'surface', 3],
+  ['control', 'surfaceRaised', 3],
 ];
 
 describe.each(['light', 'dark'] as const)('%s theme', (theme) => {
@@ -42,6 +54,17 @@ describe.each(['light', 'dark'] as const)('%s theme', (theme) => {
   });
 });
 
+describe('type scale', () => {
+  it('uses only regular (400) and medium (500) weights, never bold', () => {
+    for (const style of Object.values(typeScale)) expect([400, 500]).toContain(style.weight);
+  });
+
+  it('keeps body text readable on phones and touch-sized', () => {
+    expect(typeScale.body.mobile).toBeGreaterThanOrEqual(16);
+    expect(typeScale.caption.mobile).toBeGreaterThanOrEqual(12);
+  });
+});
+
 describe('CSS output', () => {
   it('emits one kebab-case variable per token', () => {
     const vars = cssVariables('light');
@@ -53,6 +76,16 @@ describe('CSS output', () => {
     const expected = Object.keys(cssVariables('light')).map((name) => name.replace('--qu-', ''));
     expect(Object.keys(nativewindPreset.theme.extend.colors).sort()).toEqual(expected.sort());
     expect(nativewindPreset.theme.extend.colors['surface-raised']).toBe('var(--qu-surface-raised)');
+  });
+
+  it('derives NativeWind type sizes from the shared type scale (mobile px)', () => {
+    expect(nativewindPreset.theme.extend.fontSize['h1']).toEqual([
+      '28px',
+      { lineHeight: '34px', letterSpacing: '-0.98px' },
+    ]);
+    expect(Object.keys(nativewindPreset.theme.extend.fontSize).sort()).toEqual(
+      Object.keys(typeScale).sort(),
+    );
   });
 
   it('follows the system theme and honours explicit overrides', () => {

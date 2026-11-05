@@ -1,9 +1,11 @@
 /**
  * Quiet Utility semantic tokens: the single source for web (CSS variables) and native (NativeWind vars).
- * P0 seed only; the Design System session owns this package from P1.
+ * Owner: Design System. Reference: docs/design/QUIET_UTILITY.md.
  * Near-black values follow 01_MASTER_BUILD_PROMPT (#0A0A0A), which takes precedence over the
  * v1.3 design-system table (#111111 / #0B0B0C). See docs/architecture/ADR-006.
  */
+import typeScaleJson from './type-scale.json';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
 
@@ -16,6 +18,8 @@ export type ColorToken =
   | 'inkFaint'
   | 'line'
   | 'lineStrong'
+  /** Boundary of inputs and other controls: ≥3:1 against surfaces (WCAG 1.4.11). */
+  | 'control'
   | 'action'
   | 'actionInk'
   | 'actionHover'
@@ -32,6 +36,7 @@ export const themeColors = {
     inkFaint: '#737373',
     line: '#E6E6E6',
     lineStrong: '#C9C9C9',
+    control: '#858585',
     action: '#0A0A0A',
     actionInk: '#FFFFFF',
     actionHover: '#292929',
@@ -47,6 +52,7 @@ export const themeColors = {
     inkFaint: '#858585',
     line: '#303033',
     lineStrong: '#525255',
+    control: '#707075',
     action: '#F5F5F4',
     actionInk: '#0A0A0A',
     actionHover: '#DEDEDE',
@@ -55,17 +61,38 @@ export const themeColors = {
   },
 } as const satisfies Record<ResolvedTheme, Record<ColorToken, string>>;
 
-/** Primary button heights (px): substantial, never achieved with bold type. */
-export const primaryButtonHeight = { web: 54, native: 56 } as const;
-export const buttonRadius = 10;
+export type TypeStyle = {
+  /** px at ≥1024px viewport (web desktop). */
+  web: number;
+  /** px on phones (native, and web below 1024px). */
+  mobile: number;
+  weight: 400 | 500;
+  /** Unitless multiple of font size. */
+  lineHeight: number;
+  /** em. */
+  tracking: number;
+};
+export type TypeToken =
+  'display' | 'h1' | 'h2' | 'h3' | 'body' | 'compact' | 'label' | 'caption' | 'data';
 
-/** Font family keys registered with expo-font (one family per weight on native). */
-export const nativeFontFamily = {
-  ui: 'InstrumentSans_400Regular',
-  uiMedium: 'InstrumentSans_500Medium',
-  data: 'DMMono_400Regular',
-  dataMedium: 'DMMono_500Medium',
+/** Type scale from the v1.3 design system. `data` is DM Mono (ids, money, times); the rest Instrument Sans. */
+export const typeScale: Record<TypeToken, TypeStyle> = typeScaleJson as Record<
+  TypeToken,
+  TypeStyle
+>;
+
+/**
+ * Status is never colour alone: always a glyph + plain-language label, e.g. `● Verified`.
+ * Callers choose the tone by meaning, never by desired look.
+ */
+export const statusGlyph = {
+  positive: '●',
+  pending: '○',
+  attention: '◐',
+  negative: '×',
+  neutral: '—',
 } as const;
+export type StatusTone = keyof typeof statusGlyph;
 
 const kebab = (token: string) => token.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
@@ -92,3 +119,6 @@ export function themeStylesheet(): string {
     `:root[data-theme="dark"]{${declarations('dark')}}`,
   ].join('\n');
 }
+
+/** localStorage key for the web theme override (absent = follow the system). */
+export const THEME_STORAGE_KEY = 'qu-theme';

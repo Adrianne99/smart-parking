@@ -26,8 +26,8 @@ describe('HealthStatus', () => {
   it('shows a pending state, then the server time in Asia/Manila', async () => {
     health.mockResolvedValue({ status: 'ok', service: 'api', time: '2026-11-05T02:00:00.000Z' });
     renderStatus();
-    expect(screen.getByRole('status').textContent).toBe('○ Checking…');
-    expect(await screen.findByText('● Connected')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toContain('Checking…');
+    expect(await screen.findByText('Connected')).toBeTruthy();
     expect(screen.getByText(/10:00:00/)).toBeTruthy(); // 02:00 UTC = 10:00 Manila
   });
 
@@ -37,11 +37,11 @@ describe('HealthStatus', () => {
       .mockResolvedValueOnce({ status: 'ok', service: 'api', time: new Date().toISOString() });
     renderStatus();
 
-    expect(await screen.findByText('× Unreachable')).toBeTruthy();
+    expect(await screen.findByText('Unreachable')).toBeTruthy();
     expect(screen.getByText(/could not be reached/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
 
-    expect(await screen.findByText('● Connected')).toBeTruthy();
+    expect(await screen.findByText('Connected')).toBeTruthy();
     expect(health).toHaveBeenCalledTimes(2);
   });
 

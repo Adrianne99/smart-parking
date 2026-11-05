@@ -1,38 +1,42 @@
 # Project status
 
 **Current phase:** P1 — Core foundation + design tokens
-**Progress:** P1-A (DB/Auth/API) ✅ implemented on `feat/p1-db-auth` · P1-B (Design System) ⏳ next
-**Gate P0:** ✅ passed 2026-11-05 (ADR-001–004 accepted by owner; CI green on `main`)
+**Progress:** P1-A (DB/Auth/API) ✅ `feat/p1-db-auth` (committed, not pushed) · P1-B (Design System) ✅ `feat/p1-design-system` (uncommitted)
+**Gate P1:** ⏳ awaiting on-device native check + owner acceptance
+**Gate P0:** ✅ passed 2026-11-05
 **Updated:** 2026-11-05
 
 ## Gate P1 checklist
 
 | Criterion | State | Evidence |
 |---|---|---|
-| Cross-tenant reads/writes denied in tests | ✅ | `apps/api/src/tenancy.test.ts`: 19 tests against real Postgres (2 operators × 2 facilities). CI runs them on a Postgres service and fails if they are skipped |
-| JWT verification (tampered / wrong project / role injection) | ✅ | `verify-token.test.ts`: 14 adversarial cases; verified live against local Supabase ES256 JWKS |
-| Lint / typecheck pass | ✅ | `pnpm turbo run lint typecheck test build --force` → 28/28 |
-| Theme and tokens work web / Android / iOS (incl. override) | ⏳ P1-B | |
-| Exact font sizes/weights and theme inversion documented | ⏳ P1-B | |
+| Cross-tenant reads/writes denied in tests | ✅ | `apps/api/src/tenancy.test.ts`: 19 DB tests, 2 operators × 2 facilities; CI runs them on Postgres and fails if skipped |
+| Lint / typecheck pass | ✅ | `pnpm turbo run lint typecheck test build --force` → 34/34 tasks, 11 packages |
+| Theme + tokens work on **web** | ✅ | `/design` rendered in light and dark (headless Edge); override + persistence unit-tested |
+| Theme + tokens work on **Android / iOS** | ◐ | Unit-tested (`ThemeRoot`/`ThemeSwitcher`), both apps bundle for iOS + Android with ui-mobile classes compiled in, expo-doctor 20/20. **Not yet seen on a device or emulator** |
+| Exact font sizes/weights and theme inversion documented | ✅ | `docs/design/QUIET_UTILITY.md` (type scale + inversion matrix), with tests binding both to code |
 
-## P1-A delivered
+**To close Gate P1:** run the staff app on one Android and one iOS device or emulator (Expo Go is fine for this check). Toggle System/Light/Dark, restart the app, and confirm the choice persists and text stays readable.
 
-- `packages/database`: Prisma 7.10.1 schema + first migration (`20261105051507_init`): platform/org/facility memberships, organizations, facilities, append-only audit log. Private `app` schema, RLS on, Supabase API roles revoked (verified: REST returns `PGRST106`). Idempotent demo seed.
-- API: Supabase JWT verification (ES256/RS256 only), `requireAuth`, single permission map (`modules/access`), and the endpoints `GET /v1/me`, `GET/POST /v1/organizations`, `GET/POST /v1/organizations/:id/facilities`, `GET /v1/facilities/:id`, `POST/DELETE /v1/facilities/:id/memberships[/:userId]`, `GET /v1/health/ready`. Every mutation writes an audit row in the same transaction.
-- Contracts: tenancy DTOs and enums, with a test keeping them equal to the DB enums.
+## P1-B delivered
 
-## Open issues (carried / new)
+- Tokens: new `control` border colour (≥3:1, fixes the WCAG 1.4.11 issue), shared `type-scale.json`, status glyph vocabulary; contrast tests for 15 pairs per theme.
+- `@smart-parking/ui-web`: Button, TextField, StatusLabel, Card, DataTable (loading/empty/error), Dialog + ConfirmDialog (native `<dialog>`), ThemeSwitcher + pre-paint theme script.
+- `@smart-parking/ui-mobile`: ThemeRoot (persisted override via Expo SQLite kv-store + `Appearance`), Button, TextField, StatusLabel, Card, Sheet (iOS page sheet / Android panel), `confirmAction` (native alert), ThemeSwitcher.
+- Apps: web home + `/design` showcase; staff and driver roots use `ThemeRoot`, home has the theme switcher, staff has a design screen.
+- ₱ finding: **no ₱ glyph in Instrument Sans or DM Mono** (checked the font files). Options in `QUIET_UTILITY.md`; recommended `PHP 70.00` on staff screens. Decide before the first money UI.
 
-1. **Input border contrast** below WCAG 1.4.11 (`line`/`line-strong`). → P1-B
-2. **₱ glyph coverage** unverified. → P1-B
-3. 320 px web check in a real mobile viewport. → web QA
-4. TanStack Query focus/online managers not wired to React Native AppState/NetInfo. → Staff/Driver
-5. **Rate limiting** and `trust proxy` not configured; request logs include full response headers. → before any public deployment
-6. Placeholder app icons/splash and bundle IDs. → owner, before first EAS build
-7. Hosted Supabase: use the **direct or session-mode** connection for Prisma (`pg` prepared statements). Confirm pooler mode when going hosted (ADR-007).
-8. No `users` profile table yet; staff invitations by email are not possible until it exists (P2/P4).
+## Open issues
+
+1. 320 px web check in a real mobile viewport. → web QA
+2. TanStack Query focus/online managers not wired to React Native AppState/NetInfo. → Staff/Driver (P3)
+3. **Rate limiting** and `trust proxy` not configured; request logs include full response headers. → before any public deployment
+4. Placeholder app icons/splash and bundle IDs. → owner, before first EAS build
+5. Hosted Supabase: use the direct/session connection for Prisma (ADR-007).
+6. No `users`/preferences table: theme choice is per device; staff invitations by email not possible yet.
+7. ₱ display decision (see above).
 
 ## Next
 
-- **P1-B (Design System):** Light/Dark/System override + persistence (web + native), buttons, input, table, status, dialog/sheet foundations, `ui-web`/`ui-mobile`, documented type scale; fix issues 1–2.
-- Then P1 gate review → P2 (zones, capacity, rates, check-in).
+- Owner: push both branches, confirm CI, merge P1-A then P1-B into `main`; do the on-device theme check.
+- Then **P2**: zones and capacity by vehicle category, immutable rate versions + pure pricing engine with test vectors, atomic check-in with hashed ticket tokens, occupancy with freshness.

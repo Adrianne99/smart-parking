@@ -11,7 +11,8 @@ One owner per fragile path. Others propose changes in their handoff (`05_HANDOFF
 | `packages/database/**` (Prisma schema + migrations) | **DB/Auth lead (P1 Session A)** | Only this owner creates/edits schema and migrations |
 | `supabase/config.toml` (local stack, auth settings) | DB/Auth lead (Integrator until P1) | No SQL in `supabase/migrations`; Prisma owns schema (ADR-007) |
 | `apps/api/src/modules/auth/**`, `modules/access/**`, `modules/me/**`, `modules/organizations/**`, `modules/facilities/**` | P1 Session A (DB/Auth) | `modules/access/access.ts` is the single permission map; other modules call it, never re-implement it |
-| `packages/design-tokens/**`, `packages/ui-web/**`, `packages/ui-mobile/**` | **Design System (P1 Session B)** | P0 seeded tokens + NativeWind preset |
+| `packages/design-tokens/**`, `packages/ui-web/**`, `packages/ui-mobile/**`, `docs/design/**` | **Design System (P1 Session B)** | Reference: `docs/design/QUIET_UTILITY.md` |
+| `apps/web/src/app/design/**`, `apps/staff/src/app/design.tsx` | Design System | Showcases only: no real data or API calls |
 | `packages/pricing/**`, `apps/api/src/modules/parking/**`, `modules/rates/**` | P2 Session 3 | |
 | `apps/api/src/modules/payments/**`, `cash/**`, `exits/**`, webhook inbox | P5 Session 5 | |
 | `apps/staff/**` | Staff Mobile session | |
