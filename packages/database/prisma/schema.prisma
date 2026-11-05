@@ -1,0 +1,180 @@
+// Owner: DB/Auth lead. Tenancy rules: docs/architecture/ADR-001. Entity plan: docs/architecture/ENTITY_MAP.md.
+// All tables live in the private `app` schema, which Supabase's REST/GraphQL APIs do not expose.
+// User ids are Supabase Auth user ids (auth.users.id); there is intentionally no FK into the auth schema.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["app"]
+}
+
+enum PlatformRole {
+  SUPER_ADMIN
+  SUPPORT
+  SALES
+  AUDITOR
+
+  @@schema("app")
+}
+
+enum OrgRole {
+  OWNER
+  MANAGER
+  AUDITOR
+
+  @@schema("app")
+}
+
+enum FacilityRole {
+  MANAGER
+  ATTENDANT
+  CASHIER
+  AUDITOR
+
+  @@schema("app")
+}
+
+enum OnboardingStatus {
+  PENDING_DOCUMENTS
+  UNDER_REVIEW
+  TECHNICAL_SETUP
+  PILOT_READY
+  ACTIVE
+  SUSPENDED
+
+  @@schema("app")
+}
+
+enum FacilityType {
+  INDEPENDENT_LOT
+  MALL
+  CONDOMINIUM
+  COMMERCIAL_BUILDING
+  HOSPITAL
+  OTHER
+
+  @@schema("app")
+}
+
+enum FacilityVisibility {
+  PUBLIC
+  PRIVATE
+
+  @@schema("app")
+}
+
+enum FacilityStatus {
+  ACTIVE
+  PAUSED
+
+  @@schema("app")
+}
+
+/// Platform (SaaS company) staff. Grants no operator-tenant permissions by itself.
+model PlatformMembership {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @unique @map("user_id") @db.Uuid
+  role      PlatformRole
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt DateTime?    @map("revoked_at") @db.Timestamptz(6)
+
+  @@map("platform_memberships")
+  @@schema("app")
+}
+
+model Organization {
+  id               String           @id @default(uuid()) @db.Uuid
+  legalName        String           @map("legal_name")
+  displayName      String           @map("display_name")
+  onboardingStatus OnboardingStatus @default(PENDING_DOCUMENTS) @map("onboarding_status")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  memberships         OrgMembership[]
+  facilities          Facility[]
+  facilityMemberships FacilityMembership[]
+  auditLogs           AuditLog[]
+
+  @@map("organizations")
+  @@schema("app")
+}
+
+model OrgMembership {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  role           OrgRole
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt      DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("org_memberships")
+  @@schema("app")
+}
+
+model Facility {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  name           String
+  facilityType   FacilityType       @map("facility_type")
+  /// PRIVATE by default: nothing is publicly discoverable until deliberately published.
+  visibility     FacilityVisibility @default(PRIVATE)
+  status         FacilityStatus     @default(ACTIVE)
+  timezone       String             @default("Asia/Manila")
+  addressLine    String?            @map("address_line")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  memberships  FacilityMembership[]
+
+  /// Target of composite FKs so child rows cannot point at another tenant's facility.
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@map("facilities")
+  @@schema("app")
+}
+
+model FacilityMembership {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  facilityId     String       @map("facility_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  role           FacilityRole
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt      DateTime?    @map("revoked_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  facility     Facility     @relation(fields: [facilityId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([facilityId, userId])
+  @@index([userId])
+  @@map("facility_memberships")
+  @@schema("app")
+}
+
+/// Append-only (UPDATE/DELETE/TRUNCATE are blocked by a trigger in the migration).
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  actorUserId    String   @map("actor_user_id") @db.Uuid
+  action         String
+  targetType     String   @map("target_type")
+  targetId       String?  @map("target_id")
+  requestId      String   @map("request_id")
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
+  @@schema("app")
+}

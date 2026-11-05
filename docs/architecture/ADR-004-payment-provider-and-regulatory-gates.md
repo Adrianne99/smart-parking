@@ -1,6 +1,6 @@
 # ADR-004 — Payment provider responsibilities and Philippine regulatory gates
 
-**Status:** Proposed (P0) — **pending commercial, legal and provider due diligence** · **Date:** 2026-11-05 · **Owner:** Integrator + business owner
+**Status:** Accepted by owner 2026-11-05 · **Date:** 2026-11-05 · **Owner:** Integrator + business owner
 
 ## Decision (what we build regardless of provider)
 

@@ -8,4 +8,6 @@ coverage/
 next-env.d.ts
 apps/*/assets/
 supabase/signing_keys.json
+packages/database/generated/
+packages/database/prisma/migrations/
 supabase/.temp/

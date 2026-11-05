@@ -1,6 +1,6 @@
 # ADR-002 — Parking session, payment and exit lifecycle
 
-**Status:** Proposed (P0) — state names are frozen for P1–P5 unless changed through a contract change
+**Status:** Accepted by owner 2026-11-05 — state names are frozen for P1–P5 unless changed through a contract change
 **Date:** 2026-11-05 · **Owner:** Integrator; implemented by P2 (sessions) and P5 (payments/exit)
 
 ## Context

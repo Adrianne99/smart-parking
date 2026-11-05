@@ -1,17 +1,22 @@
 import { apiErrorBodySchema, healthResponseSchema } from '@smart-parking/contracts';
+import { createPrismaClient } from '@smart-parking/database';
 import express from 'express';
 import { pino } from 'pino';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createApp } from './app';
 import { loadEnv } from './config/env';
 import { ApiError, errorHandler } from './http/errors';
 import { requestLogger } from './http/logger';
+import { testEnvVars, testVerifier } from './test-support';
 
 const logger = pino({ level: 'silent' });
-const env = loadEnv({ NODE_ENV: 'test', CORS_ALLOWED_ORIGINS: 'http://localhost:3000' });
-const app = createApp(env, logger);
+const env = loadEnv({ ...testEnvVars, CORS_ALLOWED_ORIGINS: 'http://localhost:3000' });
+// Points at a closed port: these tests must not need a database.
+const db = createPrismaClient(env.DATABASE_URL);
+const app = createApp({ env, logger, db, verifyAccessToken: testVerifier });
+afterAll(() => db.$disconnect());
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -39,6 +44,10 @@ describe('GET /v1/health', () => {
 
     const unsafe = await request(app).get('/v1/health').set('X-Request-Id', 'x" injected=1');
     expect(unsafe.headers['x-request-id']).toMatch(UUID);
+  });
+
+  it('reports not-ready (503) when the database is unreachable', async () => {
+    expectErrorEnvelope(await request(app).get('/v1/health/ready'), 503, 'SERVICE_UNAVAILABLE');
   });
 });
 
@@ -108,19 +117,31 @@ describe('CORS', () => {
 });
 
 describe('loadEnv', () => {
+  const required = {
+    DATABASE_URL: testEnvVars.DATABASE_URL,
+    SUPABASE_URL: 'http://127.0.0.1:54321',
+  };
+
   it('applies safe defaults', () => {
-    expect(loadEnv({})).toMatchObject({
+    expect(loadEnv(required)).toMatchObject({
       PORT: 4000,
       NODE_ENV: 'development',
       CORS_ALLOWED_ORIGINS: [],
     });
   });
 
+  it('requires the database and Supabase settings', () => {
+    expect(() => loadEnv({})).toThrow(/DATABASE_URL, SUPABASE_URL/);
+  });
+
   it('names invalid variables without printing their values', () => {
-    expect(() => loadEnv({ PORT: 'not-a-port-s3cr3t' })).toThrow(/PORT/);
-    expect(() => loadEnv({ PORT: 'not-a-port-s3cr3t' })).not.toThrow(/s3cr3t/);
-    expect(() => loadEnv({ CORS_ALLOWED_ORIGINS: 'http://localhost:3000/' })).toThrow(
+    expect(() => loadEnv({ ...required, PORT: 'not-a-port-s3cr3t' })).toThrow(/PORT/);
+    expect(() => loadEnv({ ...required, PORT: 'not-a-port-s3cr3t' })).not.toThrow(/s3cr3t/);
+    expect(() => loadEnv({ ...required, CORS_ALLOWED_ORIGINS: 'http://localhost:3000/' })).toThrow(
       /CORS_ALLOWED_ORIGINS/,
     );
+    const leaky = { ...required, DATABASE_URL: 'mysql://user:hunter2@db/x' };
+    expect(() => loadEnv(leaky)).toThrow(/DATABASE_URL/);
+    expect(() => loadEnv(leaky)).not.toThrow(/hunter2/);
   });
 });

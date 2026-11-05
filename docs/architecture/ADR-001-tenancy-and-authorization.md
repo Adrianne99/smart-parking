@@ -1,6 +1,6 @@
 # ADR-001 — Multi-tenancy and authorization
 
-**Status:** Proposed (P0) — needs product/security sign-off before P1 implements it
+**Status:** Accepted by owner 2026-11-05
 **Date:** 2026-11-05 · **Owner:** Integrator + DB/Auth lead (P1 Session A)
 
 ## Context
@@ -39,6 +39,16 @@ Legend: ● allowed · ◐ limited/scoped · — denied. "Scope" = membership th
 | Driver PII / session detail | break-glass, audited | break-glass, audited | — | — | ◐ own org | ◐ own org | — | ◐ own facility | ◐ operational fields | ◐ operational fields | own/claimed only |
 
 Attendants and cashiers get **no CRM profile access**, only the operational fields their task needs. Platform roles get **no operator-tenant permissions** by default.
+
+## Implementation decisions (P1, 2026-11-05)
+
+Code: `apps/api/src/modules/access/access.ts` (the single permission map) and `modules/auth/`.
+
+- **Org MANAGER** may create facilities and grant/revoke attendant, cashier and auditor staff. Only an **org OWNER** may grant or revoke the facility **MANAGER** role, so managers cannot create peers.
+- **Facility MANAGER** manages non-manager staff at their own facility only.
+- **Platform roles** can list operator organizations (B2B accounts) but get **no** facility/session access. `POST /v1/organizations` is SUPER_ADMIN only and creates the owner membership and audit row in one transaction.
+- Tables live in the private `app` schema with RLS on and Supabase API roles revoked (ADR-007). The audit log is append-only via a DB trigger.
+- A `users` profile table is deferred. Memberships store the Supabase Auth user id, with no FK into the `auth` schema.
 
 ## Consequences
 

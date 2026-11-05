@@ -34,7 +34,8 @@ erDiagram
 
 | Entity | Tenant key(s) | Phase | Key constraints / notes |
 |---|---|---|---|
-| `users` | — (Supabase `auth.users.id`, no FK to the auth schema) | P1 | Profile only. No roles stored here. |
+| `users` | — (Supabase `auth.users.id`, no FK to the auth schema) | deferred | Not created in P1: memberships hold the auth user id directly. Add when staff names/invitations are needed. |
+| `platform_memberships` | platform | ✅ P1 | `UNIQUE(user_id)`, role enum, `revoked_at` |
 | `organizations` | self | P1 | `onboarding_status` (ADR CRM statuses), publish gated on approval |
 | `org_memberships` | `organization_id` | P1 | `UNIQUE(organization_id, user_id)`, role enum, `revoked_at` |
 | `facilities` | `organization_id` | P1 | `UNIQUE(id, organization_id)` for composite FKs; `visibility` public/private; `timezone` default Asia/Manila; PostGIS point (P2) |

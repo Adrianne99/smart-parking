@@ -1,46 +1,38 @@
 # Project status
 
-**Current phase:** P0 — Discovery, architecture, repository contracts
-**Gate P0:** implementation complete, **awaiting Integrator/owner acceptance** (ADR-001–004 are *Proposed* and need product/security sign-off)
-**Updated:** 2026-11-05 · **Next phase:** P1 (do not start until Gate P0 is accepted)
+**Current phase:** P1 — Core foundation + design tokens
+**Progress:** P1-A (DB/Auth/API) ✅ implemented on `feat/p1-db-auth` · P1-B (Design System) ⏳ next
+**Gate P0:** ✅ passed 2026-11-05 (ADR-001–004 accepted by owner; CI green on `main`)
+**Updated:** 2026-11-05
 
-## Gate P0 checklist
+## Gate P1 checklist
 
 | Criterion | State | Evidence |
 |---|---|---|
-| App shells compile | ✅ | `pnpm turbo run build`: Next.js production build, API esbuild bundle, staff + driver `expo export` for iOS and Android (Hermes bundles) |
-| Tests can be invoked | ✅ | `pnpm test` → 56 tests across 7 workspaces (Vitest + Jest/jest-expo) |
-| Lint / typecheck pass | ✅ | `pnpm turbo run lint typecheck` → all green, uncached |
-| Docs have decisions and open regulatory questions | ✅ | `docs/architecture/ADR-001…006`; regulatory blockers R1–R9 in ADR-004 |
-| Schema and API contract owners assigned | ✅ | `docs/architecture/OWNERSHIP.md` |
-| No duplicate conflicting DTO definitions | ✅ | All DTOs/error codes in `packages/contracts`; v1.3 alias codes mapped in ADR-002 |
-| Entity map, RBAC matrix | ✅ | `ENTITY_MAP.md`, ADR-001 |
-| CI skeleton | ✅ written / ⏳ not yet run on GitHub | `.github/workflows/ci.yml` (no remote exists yet) |
-| Env validation templates | ✅ | `apps/*/.env.example`; API validates env with Zod at boot |
-| Dev Supabase connected | ✅ local | Local Supabase CLI stack (ADR-007), verified 2026-11-05: Postgres 17.11 with PostGIS 3.3.7 available; JWKS serves only our ES256 public key; a signup token is ES256-signed with the matching `kid`. Test user removed |
+| Cross-tenant reads/writes denied in tests | ✅ | `apps/api/src/tenancy.test.ts`: 19 tests against real Postgres (2 operators × 2 facilities). CI runs them on a Postgres service and fails if they are skipped |
+| JWT verification (tampered / wrong project / role injection) | ✅ | `verify-token.test.ts`: 14 adversarial cases; verified live against local Supabase ES256 JWKS |
+| Lint / typecheck pass | ✅ | `pnpm turbo run lint typecheck test build --force` → 28/28 |
+| Theme and tokens work web / Android / iOS (incl. override) | ⏳ P1-B | |
+| Exact font sizes/weights and theme inversion documented | ⏳ P1-B | |
 
-## What is real vs. stubbed
+## P1-A delivered
 
-| Area | State |
-|---|---|
-| `GET /v1/health` | **Real**, liveness only (no DB readiness check yet) |
-| Error envelope, request IDs, redacted logs, CORS allowlist, Helmet headers, `no-store`, 100 kB body limit | **Real**, tested |
-| Typed API client (contract validation, retry policy, cancellation) | **Real**, tested |
-| Quiet Utility colour tokens, fonts (Instrument Sans + DM Mono), system light/dark | **Real seed**; the persisted Light/Dark/System override is not built yet (P1) |
-| Auth, tenancy, database, Prisma | **Not started** (P1) |
-| Payments | **Nothing exists.** No provider, no sandbox adapter yet (P5) |
+- `packages/database`: Prisma 7.10.1 schema + first migration (`20261105051507_init`): platform/org/facility memberships, organizations, facilities, append-only audit log. Private `app` schema, RLS on, Supabase API roles revoked (verified: REST returns `PGRST106`). Idempotent demo seed.
+- API: Supabase JWT verification (ES256/RS256 only), `requireAuth`, single permission map (`modules/access`), and the endpoints `GET /v1/me`, `GET/POST /v1/organizations`, `GET/POST /v1/organizations/:id/facilities`, `GET /v1/facilities/:id`, `POST/DELETE /v1/facilities/:id/memberships[/:userId]`, `GET /v1/health/ready`. Every mutation writes an audit row in the same transaction.
+- Contracts: tenancy DTOs and enums, with a test keeping them equal to the DB enums.
 
-## Open issues found in P0 (assign in P1)
+## Open issues (carried / new)
 
-1. **Input border contrast:** `line` (#E6E6E6) and `line-strong` (#C9C9C9) on white are below the WCAG 1.4.11 3:1 non-text minimum. Form controls need a ≥3:1 boundary or another affordance. → Design System session.
-2. **₱ glyph coverage** in Instrument Sans / DM Mono is unverified (`latin-ext` subset loaded on web; native fonts unchecked). → Design System session.
-3. **320 px web check** not done in a real mobile viewport (headless Windows Edge enforces a ~500 px minimum width; 520 px renders correctly). → Web QA.
-4. TanStack Query `focusManager`/`onlineManager` are not wired to React Native `AppState`/NetInfo yet. → Staff/Driver sessions.
-5. API request logs include full response headers (no secrets, but noisy). Rate limiting and `trust proxy` are not configured yet. → P1 API hardening.
-6. Placeholder app icons/splash and bundle IDs `ph.smartparking.driver` / `ph.smartparking.staff`. → Owner decision before the first EAS build.
+1. **Input border contrast** below WCAG 1.4.11 (`line`/`line-strong`). → P1-B
+2. **₱ glyph coverage** unverified. → P1-B
+3. 320 px web check in a real mobile viewport. → web QA
+4. TanStack Query focus/online managers not wired to React Native AppState/NetInfo. → Staff/Driver
+5. **Rate limiting** and `trust proxy` not configured; request logs include full response headers. → before any public deployment
+6. Placeholder app icons/splash and bundle IDs. → owner, before first EAS build
+7. Hosted Supabase: use the **direct or session-mode** connection for Prisma (`pg` prepared statements). Confirm pooler mode when going hosted (ADR-007).
+8. No `users` profile table yet; staff invitations by email are not possible until it exists (P2/P4).
 
-## Next safely parallelizable tasks (after Gate P0 acceptance)
+## Next
 
-- **P1 Session A (DB/Auth/API):** `packages/database` (Prisma 7.10.x), organizations/memberships/facilities/audit, Supabase JWKS verification, `requireFacilityPermission`, 2-org negative tests, seeds (≥2 operators × ≥2 facilities), DB readiness in health.
-- **P1 Session B (Design System):** theme override + persistence, primary/secondary buttons, input, table, status, dialog/sheet foundations, `packages/ui-web` / `ui-mobile`; resolve open issues 1–2.
-- **QA session (read/write `tests/security/**` only):** threat-model doc and two-tenant test harness plan.
+- **P1-B (Design System):** Light/Dark/System override + persistence (web + native), buttons, input, table, status, dialog/sheet foundations, `ui-web`/`ui-mobile`, documented type scale; fix issues 1–2.
+- Then P1 gate review → P2 (zones, capacity, rates, check-in).
