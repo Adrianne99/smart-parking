@@ -1,0 +1,50 @@
+{
+  "name": "@smart-parking/ui-mobile",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  },
+  "dependencies": {
+    "@smart-parking/design-tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "expo-sqlite": "~58.0.15",
+    "expo-status-bar": "~58.0.4",
+    "nativewind": "^4.2.7",
+    "react": "^19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1"
+  },
+  "devDependencies": {
+    "@smart-parking/config": "workspace:*",
+    "@testing-library/react-native": "14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "~19.3.0",
+    "babel-preset-expo": "~58.0.0",
+    "eslint": "9.39.5",
+    "eslint-config-expo": "~58.0.4",
+    "expo": "~58.0.23",
+    "expo-sqlite": "~58.0.15",
+    "expo-status-bar": "~58.0.4",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
+    "nativewind": "^4.2.7",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-css-interop": "0.2.7",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-worklets": "0.13.0",
+    "tailwindcss": "3.4.19",
+    "typescript": "~6.0.3"
+  }
+}

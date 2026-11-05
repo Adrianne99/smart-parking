@@ -1,4 +1,5 @@
 import { themeStylesheet } from '@smart-parking/design-tokens';
+import { themeInitScript } from '@smart-parking/ui-web';
 import type { Metadata } from 'next';
 import { DM_Mono, Instrument_Sans } from 'next/font/google';
 import type { ReactNode } from 'react';
@@ -29,11 +30,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${ui.variable} ${data.variable}`}>
+    // suppressHydrationWarning: themeInitScript may set data-theme before React hydrates.
+    <html lang="en" className={`${ui.variable} ${data.variable}`} suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+        {/* Applies a saved Light/Dark override before first paint (static string, no user input). */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="bg-canvas font-sans text-ink antialiased">
+      <body className="bg-canvas font-sans text-body text-ink antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Shared UI primitives ship as source; let Tailwind see their classes. */
+@source '../../../../packages/ui-web/src';
+
 /* Semantic colours come from @smart-parking/design-tokens (rendered as --qu-* in the root layout). */
 @theme inline {
   --color-canvas: var(--qu-canvas);
@@ -10,6 +13,7 @@
   --color-ink-faint: var(--qu-ink-faint);
   --color-line: var(--qu-line);
   --color-line-strong: var(--qu-line-strong);
+  --color-control: var(--qu-control);
   --color-action: var(--qu-action);
   --color-action-ink: var(--qu-action-ink);
   --color-action-hover: var(--qu-action-hover);
@@ -18,6 +22,59 @@
 
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+}
+
+/*
+ * Type scale = packages/design-tokens/src/type-scale.json (a test keeps them in sync).
+ * Mobile sizes by default; desktop sizes from 1024px. Use with font-mono for `data`.
+ */
+@theme {
+  --text-display: 36px;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 400;
+  --text-h1: 28px;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.035em;
+  --text-h1--font-weight: 500;
+  --text-h2: 22px;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h2--font-weight: 500;
+  --text-h3: 18px;
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.015em;
+  --text-h3--font-weight: 500;
+  --text-body: 16px;
+  --text-body--line-height: 1.6;
+  --text-body--letter-spacing: -0.005em;
+  --text-body--font-weight: 400;
+  --text-compact: 14px;
+  --text-compact--line-height: 1.45;
+  --text-compact--letter-spacing: 0em;
+  --text-compact--font-weight: 400;
+  --text-label: 13px;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0em;
+  --text-label--font-weight: 500;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.5;
+  --text-caption--letter-spacing: 0em;
+  --text-caption--font-weight: 400;
+  --text-data: 15px;
+  --text-data--line-height: 1.45;
+  --text-data--letter-spacing: 0em;
+  --text-data--font-weight: 400;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --text-display: 48px;
+    --text-h1: 32px;
+    --text-h2: 24px;
+    --text-body: 15px;
+    --text-data: 14px;
+  }
 }
 
 :focus-visible {
